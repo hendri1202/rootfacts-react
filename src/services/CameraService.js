@@ -19,7 +19,6 @@ export class CameraService {
 
   async loadCameras() {
     try {
-      // minta izin dulu supaya label perangkat muncul
       const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
       tempStream.getTracks().forEach((track) => track.stop());
 
@@ -41,14 +40,12 @@ export class CameraService {
     };
 
     if (selectedCameraId && selectedCameraId !== 'default') {
-      // 'front' → facingMode user, selain itu pakai deviceId
       if (selectedCameraId === 'front') {
         base.facingMode = 'user';
       } else {
         base.deviceId = { exact: selectedCameraId };
       }
     } else {
-      // default = kamera belakang (environment)
       base.facingMode = { ideal: 'environment' };
     }
 
@@ -56,7 +53,6 @@ export class CameraService {
   }
 
   async startCamera(selectedCameraId) {
-    // hentikan stream sebelumnya kalau masih ada
     this.stopCamera();
 
     if (selectedCameraId) {

@@ -13,9 +13,6 @@ export class RootFactsService {
 
   async loadModel(onProgress) {
     try {
-      // --- Backend Adaptif ---
-      // WebGPU dicoba dulu. Jika gagal, Transformers.js memakai backend default
-      // yang paling aman untuk browser (WASM/CPU).
       const canUseWebGPU = typeof navigator !== 'undefined' && 'gpu' in navigator;
       const modelId = 'Xenova/flan-t5-small';
       const loadOptions = canUseWebGPU
@@ -75,7 +72,6 @@ export class RootFactsService {
         do_sample: true,
       });
 
-      // ambil teks dari output pipeline
       const text = Array.isArray(output)
         ? output[0]?.generated_text || ''
         : output?.generated_text || '';
@@ -90,8 +86,6 @@ export class RootFactsService {
   }
 
   _buildPrompt(vegetableName) {
-    // Prompt tetap memakai bahasa Inggris agar model lebih stabil,
-    // tetapi hasilnya diminta dalam bahasa Indonesia yang natural.
     const toneGuide = {
       normal: `Write one natural Indonesian fun fact about ${vegetableName}. Make it warm, simple, and not robotic.`,
       funny: `Write one funny natural Indonesian fun fact about ${vegetableName}. Keep it light, playful, and not robotic.`,

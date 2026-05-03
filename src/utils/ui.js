@@ -58,7 +58,6 @@ export const commonStyles = {
   }
 };
 
-/* ===== Confidence Theme ===== */
 export const getConfidenceTheme = (confidence) => {
   if (confidence >= 80) return 'theme-green';
   if (confidence >= 60) return 'theme-yellow';

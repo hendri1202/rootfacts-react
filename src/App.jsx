@@ -17,7 +17,6 @@ function App() {
   const [currentTone, setCurrentTone] = useState('normal');
   const servicesRef = useRef({ detector: null, camera: null, generator: null });
 
-  // ===== Fase 4.1: Inisialisasi layanan saat komponen dimuat =====
   useEffect(() => {
     let cancelled = false;
 
@@ -32,21 +31,18 @@ function App() {
       try {
         actions.setModelStatus('Memuat Model AI... 0%');
 
-        // muat model deteksi dulu — biasanya lebih cepat
         await detector.loadModel((pct) => {
           if (!cancelled) {
             actions.setModelStatus(`Memuat Model AI... ${pct}%`);
           }
         });
 
-        // sekarang muat model generatif
         await generator.loadModel((pct) => {
           if (!cancelled) {
             actions.setModelStatus(`Memuat Model AI... ${pct}%`);
           }
         });
 
-        // muat daftar kamera
         await camera.loadCameras();
 
         if (!cancelled) {
@@ -63,7 +59,6 @@ function App() {
 
     bootstrap();
 
-    // Fase 4.2: Cleanup saat komponen unmount
     return () => {
       cancelled = true;
       const { camera } = servicesRef.current;
@@ -72,7 +67,6 @@ function App() {
     };
   }, []);
 
-  // ===== Fase 4.3: Loop deteksi =====
   const startDetectionLoop = useCallback(() => {
     const { detector, camera, generator } = servicesRef.current;
     if (!detector || !camera || !generator) return;
@@ -82,7 +76,6 @@ function App() {
     const loop = async () => {
       if (!isRunningRef.current) return;
 
-      // pastikan video sudah siap
       if (!camera.isReady()) {
         loopId = setTimeout(loop, APP_CONFIG.detectionRetryInterval);
         return;
@@ -108,8 +101,6 @@ function App() {
         const hasScannedLongEnough = scanDuration >= APP_CONFIG.minimumScanDuration;
 
         if (result && isValidDetection(result) && isStableDetection && hasScannedLongEnough) {
-          // Sayuran dianggap valid kalau terdeteksi stabil beberapa frame.
-          // Ini membuat kamera tidak langsung mati karena tebakan awal yang belum stabil.
           isRunningRef.current = false;
           camera.stopCamera();
           actions.setRunning(false);
@@ -135,33 +126,28 @@ function App() {
         logError('Detection loop', err);
       }
 
-      // hitung delay berdasarkan FPS yang diset user
       const fpsDelay = Math.floor(1000 / (camera.getFPS() || 30));
       loopId = setTimeout(loop, fpsDelay);
     };
 
     loop();
 
-    // simpan fungsi cleanup supaya bisa dihentikan
     detectionCleanupRef.current = () => {
       if (loopId) clearTimeout(loopId);
     };
   }, [actions]);
 
-  // ===== Fase 4.4: Toggle kamera =====
   const handleToggleCamera = useCallback(async () => {
     const { camera } = servicesRef.current;
     if (!camera) return;
 
     if (isRunningRef.current) {
-      // stop
       isRunningRef.current = false;
       if (detectionCleanupRef.current) detectionCleanupRef.current();
       camera.stopCamera();
       actions.setRunning(false);
       actions.resetResults();
     } else {
-      // start
       try {
         actions.setError(null);
         actions.resetResults();
@@ -177,14 +163,12 @@ function App() {
     }
   }, [actions, startDetectionLoop]);
 
-  // ===== Fase 4.5: Ganti tone =====
   const handleToneChange = useCallback((tone) => {
     setCurrentTone(tone);
     const { generator } = servicesRef.current;
     if (generator) generator.setTone(tone);
   }, []);
 
-  // ===== Fase 4.6: Salin fun fact =====
   const handleCopyFact = useCallback(async () => {
     if (!state.funFactData || state.funFactData === 'error') return;
 

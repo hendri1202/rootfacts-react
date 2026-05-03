@@ -11,15 +11,12 @@ export class DetectionService {
 
   async loadModel(onProgress) {
     try {
-      // --- Backend Adaptif ---
-      // cek apakah perangkat mendukung WebGPU
       if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
         try {
           await tf.setBackend('webgpu');
           await tf.ready();
           this.backendUsed = 'webgpu';
         } catch (_gpuErr) {
-          // WebGPU gagal, mundur ke WebGL
           console.warn('WebGPU tidak bisa dipakai, beralih ke WebGL');
           await tf.setBackend('webgl');
           await tf.ready();
@@ -33,7 +30,6 @@ export class DetectionService {
 
       onProgress?.(20);
 
-      // --- Muat model & metadata secara paralel ---
       const [model, metaRes] = await Promise.all([
         tf.loadLayersModel('/model/model.json'),
         fetch('/model/metadata.json'),
@@ -59,8 +55,6 @@ export class DetectionService {
   async predict(imageElement) {
     if (!this.model) return null;
 
-    // tf.tidy membersihkan tensor secara otomatis setelah blok ini selesai
-    // jadi memori GPU/CPU tidak bocor meskipun dipanggil berkali-kali
     const result = tf.tidy(() => {
       const tensor = tf.browser
         .fromPixels(imageElement)
@@ -73,7 +67,6 @@ export class DetectionService {
       const prediction = this.model.predict(tensor);
       const scores = prediction.dataSync();
 
-      // cari indeks dengan skor tertinggi
       let maxIdx = 0;
       let maxScore = scores[0];
       for (let i = 1; i < scores.length; i++) {

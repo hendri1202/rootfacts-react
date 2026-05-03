@@ -55,7 +55,6 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        // precache model AI untuk offline detection
         additionalManifestEntries: [
           { url: '/model/model.json', revision: null },
           { url: '/model/weights.bin', revision: null },
