@@ -36,7 +36,7 @@ function CameraSection({
   const handleCameraChange = (newCameraType) => {
     setCameraType(newCameraType);
     if (services.camera && services.camera.isActive()) {
-      services.camera.startCamera();
+      services.camera.startCamera(newCameraType);
     }
   };
 
